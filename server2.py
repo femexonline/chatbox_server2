@@ -218,26 +218,26 @@ class SocketMsgRecieve:
         resId=message[4]
         seen=message[5]
 
-        adminFirstRes=False
+
+        #chatID, senderId, msg, resId
+        #adminFirstRes, pingNotTheAdmin, chatData, (isErr, msg, err)resData
+
+        apiData=EndPoints.sendmsg_recv(chatID, senderId, msg, isAdmin, resId)
+        if(apiData["isErr"]):
+            print(apiData["err"])
+            print("err_1")
+            return
+        
+        if(apiData["pingNotTheAdmin"]):
+            await Pings.notTheAdmin(chatID, senderId)
+            return
 
 
-        chatData=EndPoints.getChatData(chatID)
-        if(isAdmin):
-            if(not chatData["admin_id"]):
-                EndPoints.setChatAdmin(chatID, senderId)
-                adminFirstRes=True
-            else:
-                if(int(chatData["admin_id"]) != int(senderId)):
-                    await Pings.notTheAdmin(chatID, senderId)
-                    return
+        
+        await Pings.msgSent(apiData, msgSendingID, senderId, isAdmin)
+        await Pings.newMsg(apiData["chatData"], apiData, senderId, isAdmin)
 
-
-        resData=EndPoints.sendMsg(senderId, chatID, msg, resId)
-
-        await Pings.msgSent(resData, msgSendingID, senderId, isAdmin)
-        await Pings.newMsg(chatData, resData, senderId, isAdmin)
-
-        if(adminFirstRes):
+        if(apiData["adminFirstRes"]):
             if(seen):
                 msgTemp_={}
                 msgTemp_[chatID]=seen
@@ -254,64 +254,51 @@ class SocketMsgRecieve:
         data=message[1]
         if(not len(data)):
            return
-
-
-        chatIds=list(data.keys())
-
-
+        
 
         time_del=int(time.time())
+        toSend=json.dumps(data)
 
-        chatData=EndPoints.getChatsByIdList(chatIds)
 
-        for chatId in data:
+        resData=EndPoints.msgsRecvSig(toSend, time_del, senderId, isAdmin)
+        if(resData["isErr"]):
+            print(resData["err"])
+            print("err_2")
+            return
+        
 
-            if(chatData[chatId]):
+        for r_data in resData["data"]:
+            chatId=r_data["chat_id"]
 
-                if(chatData[chatId]["admin_id"]):
-
-                    EndPoints.markMessagesFromChatAsDelivered(chatId, data[chatId], senderId, time_del)
-
-                    idToRecieve=None
-
-                    if(isAdmin):
-                        idToRecieve=chatData[chatId]["user_id"]
-                    else:
-                        idToRecieve=chatData[chatId]["admin_id"]
-                    
-                    await Pings.msgsDelivered(chatId, data[chatId], idToRecieve, not isAdmin, time_del)
+            if(chatId in data):
+                idToRecieve=r_data["idToRecieve"]
+                await Pings.msgsDelivered(chatId, data[chatId], idToRecieve, not isAdmin, time_del)
 
     @staticmethod
     async def _msgSeenSig(message:list, senderId, isAdmin):
         data=message[1]
         if(not len(data)):
            return
-
-
-        chatIds=list(data.keys())
-
-
+        
 
         time_del=int(time.time())
+        toSend=json.dumps(data)
 
-        chatData=EndPoints.getChatsByIdList(chatIds)
 
-        for chatId in data:
+        resData=EndPoints.msgSeenSig(toSend, time_del, senderId, isAdmin)
+        if(resData["isErr"]):
+            print(resData["err"])
+            print("err_3")
+            return
+        
 
-            if(chatData[chatId]):
+        for r_data in resData["data"]:
+            chatId=r_data["chat_id"]
 
-                if(chatData[chatId]["admin_id"]):
+            if(chatId in data):
+                idToRecieve=r_data["idToRecieve"]
+                await Pings.msgsSeen(chatId, data[chatId], idToRecieve, not isAdmin, time_del)
 
-                    EndPoints.markMessagesFromChatAsSeen(chatId, data[chatId], senderId, time_del)
-
-                    idToRecieve=None
-
-                    if(isAdmin):
-                        idToRecieve=chatData[chatId]["user_id"]
-                    else:
-                        idToRecieve=chatData[chatId]["admin_id"]
-                    
-                    await Pings.msgsSeen(chatId, data[chatId], idToRecieve, not isAdmin, time_del)
 
     @staticmethod
     async def _newChatStart(message:list, senderId, isAdmin):
@@ -321,34 +308,20 @@ class SocketMsgRecieve:
            return
         
         
-        msg=EndPoints.getMessageByid(msg_id)
-
-        index=0
-        while(not msg and index<30):
-            await asyncio.sleep(.02)
-            msg=EndPoints.getMessageByid(msg_id, True)
-            index+=1
-        
-
-        if(not msg):
-            return
-        
-        
-        chatID=msg["chat_id"]
-
-        chatData=EndPoints.getChatData(chatID)
-
-        if(not chatData):
+        resData=EndPoints.newChatStart(msg_id)
+        if(resData["isErr"]):
+            print(resData["err"])
+            print("err_4")
             return
 
 
-        resData={
+        resDatar={
             "isErr":False,
             "err":"",
-            "msg":msg
+            "msg":resData["msg"]
         }
 
-        await Pings.newMsg(chatData, resData, senderId, isAdmin)
+        await Pings.newMsg(resData["chatData"], resDatar, senderId, isAdmin)
 
         
 
