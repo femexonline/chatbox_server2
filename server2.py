@@ -198,6 +198,9 @@ class SocketMsgRecieve:
         message=json.loads(message)
         msg_type=message[0]
 
+        #p
+        print(msg_type)
+
         if(msg_type=="sendmsg"):
             await SocketMsgRecieve._sendmsg(message, userid, isAdmin, sockeetId)
 
@@ -221,12 +224,12 @@ class SocketMsgRecieve:
 
         #chatID, senderId, msg, resId
         #adminFirstRes, pingNotTheAdmin, chatData, (isErr, msg, err)resData
-
         apiData=EndPoints.sendmsg_recv(chatID, senderId, msg, isAdmin, resId)
         if(apiData["isErr"]):
             print(apiData["err"])
             print("err_1")
             return
+
         
         if(apiData["pingNotTheAdmin"]):
             await Pings.notTheAdmin(chatID, senderId)
@@ -350,10 +353,13 @@ async def processUserEnter(userid, isAdmin, sockeetId, websocket):
             admins[userid][sockeetId]=websocket
 
     if(setOnline):
-        status=EndPoints.setUseOnlineStatus(userid, True)
+        resData=EndPoints.setUserOnline(userid, isAdmin)
+        if(resData["isErr"]):
+            print(resData["err"])
+            print("err_5")
+            return
 
-        ids=EndPoints.getAllUserToPing(userid, isAdmin)
-        await Pings.onlineStatus(status, userid, ids, isAdmin)
+        await Pings.onlineStatus(resData["user_status"], userid, resData["list_to_notify"], isAdmin)
 
         
 async def processUserLeave(userid, isAdmin, sockeetId):
@@ -382,10 +388,13 @@ async def processUserLeave(userid, isAdmin, sockeetId):
             print("some err2")
 
     if(setOffline):
-        status=EndPoints.setUseOnlineStatus(userid, False)
+        resData=EndPoints.setUserOffline(userid, isAdmin)
+        if(resData["isErr"]):
+            print(resData["err"])
+            print("err_6")
+            return
 
-        ids=EndPoints.getAllUserToPing(userid, isAdmin)
-        await Pings.onlineStatus(status, userid, ids, isAdmin)
+        await Pings.onlineStatus(resData["user_status"], userid, resData["list_to_notify"], isAdmin)
 
 
 async def handle_connection(websocket:WebSocketServerProtocol, path):

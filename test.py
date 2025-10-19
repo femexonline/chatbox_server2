@@ -9,7 +9,7 @@ chatData={
 }
 
 
-data=EndPoints.newChatStart(200)
+data=EndPoints.setUserOffline(2, 0)
 
 
 print(data)
