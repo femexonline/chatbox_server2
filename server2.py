@@ -4,6 +4,8 @@ from websockets import WebSocketServerProtocol
 import json
 import time
 
+from aiohttp import web
+
 from db_endpoints import EndPoints, env
 
 
@@ -422,10 +424,30 @@ async def handle_connection(websocket:WebSocketServerProtocol, path):
         print(f"An unexpected error occurred: {e}")
         await processUserLeave(userid, isAdmin, sockeetId)
 
+
+
+# 🩺 HTTP health check
+async def health_check(request):
+    return web.Response(text="OK", status=200)
+
 async def main():
+    # Start aiohttp health check server
+    app = web.Application()
+    app.router.add_get("/", health_check)
+    app.router.add_head("/", health_check)  # Render sometimes uses HEAD
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", 10000)
+    await site.start()
+
+    # Start your WebSocket server
     async with websockets.serve(handle_connection, env("HOST"), int(env("PORT"))):
         print(f"WebSocket server is running on ws://{env("HOST")}:{env("PORT")}")
-        await asyncio.Future()  # Run forever
+        print("Health check server on port 10000 (path: /)")
+        await asyncio.Future()  # Keep running forever
+
+
+
 
 if __name__ == "__main__":
     asyncio.run(main())
