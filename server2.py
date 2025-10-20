@@ -198,9 +198,6 @@ class SocketMsgRecieve:
         message=json.loads(message)
         msg_type=message[0]
 
-        #p
-        print(msg_type)
-
         if(msg_type=="sendmsg"):
             await SocketMsgRecieve._sendmsg(message, userid, isAdmin, sockeetId)
 
@@ -268,10 +265,10 @@ class SocketMsgRecieve:
             print(resData["err"])
             print("err_2")
             return
-        
+                
 
         for r_data in resData["data"]:
-            chatId=r_data["chat_id"]
+            chatId=str(r_data["chat_id"])
 
             if(chatId in data):
                 idToRecieve=r_data["idToRecieve"]
@@ -296,7 +293,7 @@ class SocketMsgRecieve:
         
 
         for r_data in resData["data"]:
-            chatId=r_data["chat_id"]
+            chatId=str(r_data["chat_id"])
 
             if(chatId in data):
                 idToRecieve=r_data["idToRecieve"]
