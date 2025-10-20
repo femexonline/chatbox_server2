@@ -4,7 +4,7 @@ from websockets import WebSocketServerProtocol
 import json
 import time
 
-from db_endpoints import EndPoints
+from db_endpoints import EndPoints, env
 
 
 admins={}
@@ -423,8 +423,8 @@ async def handle_connection(websocket:WebSocketServerProtocol, path):
         await processUserLeave(userid, isAdmin, sockeetId)
 
 async def main():
-    async with websockets.serve(handle_connection, "localhost", 8080):
-        print("WebSocket server is running on ws://localhost:8080")
+    async with websockets.serve(handle_connection, env("HOST"), int(env("PORT"))):
+        print(f"WebSocket server is running on ws://{env("HOST")}:{env("PORT")}")
         await asyncio.Future()  # Run forever
 
 if __name__ == "__main__":

@@ -4,16 +4,20 @@ import os
 import requests
 from dotenv import load_dotenv
 
+
 load_dotenv()
+if(os.getenv("LIVE")=="false"):
+    print("yes")
+    load_dotenv(".env.dev", override=True)
+
 
 def env(name):
     return os.getenv(name)
 
 
 
-
 def getApiPath(name):
-    return env("HOST")+env("API_HOME")+name
+    return env("API_HOST")+env("API_HOME")+name
 
 
 
