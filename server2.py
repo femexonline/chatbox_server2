@@ -434,7 +434,6 @@ async def main():
     # Start aiohttp health check server
     app = web.Application()
     app.router.add_get("/", health_check)
-    app.router.add_head("/", health_check)  # Render sometimes uses HEAD
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", 10000)
