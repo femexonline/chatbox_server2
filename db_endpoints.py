@@ -1,4 +1,3 @@
-import mysql.connector
 import time
 import os
 import requests
