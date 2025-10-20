@@ -436,13 +436,13 @@ async def main():
     app.router.add_get("/", health_check)
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", 8000)
+    site = web.TCPSite(runner, "0.0.0.0", 10000)
     await site.start()
 
     # Start your WebSocket server
-    async with websockets.serve(handle_connection, env("HOST"), int(env("PORT"))):
-        print(f"WebSocket server is running on ws://{env("HOST")}:{env("PORT")}")
-        print("Health check server on port 8000 (path: /)")
+    async with websockets.serve(handle_connection, env("HOST"), int(env("HOST_PORT"))):
+        print(f"WebSocket server is running on ws://{env("HOST")}:{env("HOST_PORT")}")
+        print("Health check server on port 10000 (path: /)")
         await asyncio.Future()  # Keep running forever
 
 
