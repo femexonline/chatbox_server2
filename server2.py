@@ -4,8 +4,6 @@ from websockets import WebSocketServerProtocol
 import json
 import time
 
-from aiohttp import web
-
 from db_endpoints import EndPoints, env
 
 
@@ -424,72 +422,10 @@ async def handle_connection(websocket:WebSocketServerProtocol, path):
         print(f"An unexpected error occurred: {e}")
         await processUserLeave(userid, isAdmin, sockeetId)
 
-
-# 🧩 WebSocket connection handler (path variables parsed manually)
-async def websocket_handler(request):
-    ws = web.WebSocketResponse(heartbeat=30)
-    await ws.prepare(request)
-
-    # Manual path split (same as your original)
-    path = request.path.strip("/")  # removes leading/trailing "/"
-    data = path.split("/")
-    if len(data) < 3:
-        await ws.close()
-        return ws
-
-    userid = data[0]
-    isAdmin = int(data[1])
-    sockeetId = data[2]
-
-    print("A client connected!")
-    await processUserEnter(userid, isAdmin, sockeetId, ws)
-
-    try:
-        async for msg in ws:
-            if msg.type == web.WSMsgType.TEXT:
-                message = msg.data
-                if message:
-                    print(sockeetId)
-                    await SocketMsgRecieve.recieve(message, userid, isAdmin, sockeetId)
-            elif msg.type == web.WSMsgType.ERROR:
-                print(f"WebSocket error: {ws.exception()}")
-
-    except asyncio.TimeoutError:
-        print("Client timed out - no messages received for 10 seconds")
-        await processUserLeave(userid, isAdmin, sockeetId)
-
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        await processUserLeave(userid, isAdmin, sockeetId)
-
-    finally:
-        print("A client disconnected")
-        await processUserLeave(userid, isAdmin, sockeetId)
-
-    return ws
-
-
-
-# 🩺 HTTP health check
-async def health_check(request):
-    return web.Response(text="OK", status=200)
-
-# 🚀 Main entry point
 async def main():
-    app = web.Application()
-    app.router.add_get("/", health_check)
-    # Use catch-all route to handle websocket path dynamically
-    app.router.add_get("/{tail:.*}", websocket_handler)
-
-    print(f"WebSocket + HealthCheck running on http://{env("HOST")}:{env("PORT")}")
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, env("HOST"), int(env("PORT")))
-    await site.start()
-
-    await asyncio.Future()  # Keep running forever
-
-
+    async with websockets.serve(handle_connection, env("HOST"), int(env("PORT"))):
+        print(f"WebSocket server is running on ws://{env("HOST")}:{env("PORT")}")
+        await asyncio.Future()  # Run forever
 
 if __name__ == "__main__":
     asyncio.run(main())
