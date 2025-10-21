@@ -424,7 +424,7 @@ async def handle_connection(websocket:WebSocketServerProtocol, path):
 
 async def main():
     async with websockets.serve(handle_connection, env("HOST"), int(env("PORT"))):
-        print(f"WebSocket server is running on ws://{env("HOST")}:{env("PORT")}")
+        print("WebSocket server is running on ws://{}:{}".format(env("HOST"), env("PORT")))
         await asyncio.Future()  # Run forever
 
 if __name__ == "__main__":
