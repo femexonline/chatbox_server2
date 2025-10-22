@@ -401,7 +401,7 @@ async def processUserLeave(userid, isAdmin, sockeetId):
 
 
 async def handle_connection(websocket:ServerConnection):
-    print("A client connected!")
+    # print("A client connected!")
 
     path=websocket.request.path
 
@@ -418,20 +418,29 @@ async def handle_connection(websocket:ServerConnection):
             # Set a timeout for receiving messages
             message = await asyncio.wait_for(websocket.recv(), timeout=30)  # 10 seconds timeout
             if(message):
-                print(sockeetId)
                 await SocketMsgRecieve.recieve(message, userid, isAdmin, sockeetId)
     except asyncio.TimeoutError:
-        print("Client timed out - no messages received for 10 seconds")
+        # print("Client timed out - no messages received for 10 seconds")
         await processUserLeave(userid, isAdmin, sockeetId)
     except websockets.ConnectionClosed:
-        print("A client disconnected")
+        # print("A client disconnected")
         await processUserLeave(userid, isAdmin, sockeetId)
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         await processUserLeave(userid, isAdmin, sockeetId)
 
+
+def health_check(connection, request):
+    if request.path == "/healthz":
+        return connection.respond(200, "OK\n")
+    
+    if(len(request.path.split("/")) < 4):
+        return connection.respond(403, "Forbidden")
+
+
+
 async def main():
-    async with websockets.serve(handle_connection, env("HOST"), int(env("PORT"))):
+    async with websockets.serve(handle_connection, env("HOST"), int(env("PORT")), process_request=health_check):
         print("WebSocket server is running on ws://{}:{}".format(env("HOST"), env("PORT")))
         await asyncio.Future()  # Run forever
 
