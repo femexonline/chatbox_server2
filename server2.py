@@ -1,5 +1,7 @@
 import asyncio
 import websockets
+from websockets import ServerConnection
+from websockets.exceptions import ConnectionClosed
 import json
 import time
 
@@ -8,6 +10,17 @@ from db_endpoints import EndPoints, env
 
 admins={}
 users={}
+
+
+
+
+async def send_safe(websocket:ServerConnection, message):
+    try:
+        await websocket.send(message)
+    except ConnectionClosed:
+        print("Client disconnected.")
+
+
 
 class Pings:
     # async def msgsDelivered(data, senderId, isAdmin, sockeetId):
@@ -31,10 +44,10 @@ class Pings:
 
         if(senderId in user_sockets):
             for socId in user_sockets[senderId]:
-                webSoc=user_sockets[senderId][socId]
-                if(not webSoc.closed):
-                    await webSoc.send(json.dumps(send))
-    
+                webSoc:ServerConnection=user_sockets[senderId][socId]
+                await send_safe(webSoc, json.dumps(send))
+
+
     @staticmethod
     async def notTheAdmin(chatID, senderId):
         send=[
@@ -44,9 +57,9 @@ class Pings:
 
         if(senderId in admins):
             for socId in admins[senderId]:
-                webSoc=admins[senderId][socId]
-                if(not webSoc.closed):
-                    await webSoc.send(json.dumps(send))
+                webSoc:ServerConnection=admins[senderId][socId]
+                await send_safe(webSoc, json.dumps(send))
+                
 
     @staticmethod
     async def notTheAdmins(chatID, senderId):
@@ -58,9 +71,8 @@ class Pings:
         for adminId in admins:
             if(senderId!=adminId):
                 for socId in admins[adminId]:
-                    webSoc=admins[adminId][socId]
-                    if(not webSoc.closed):
-                        await webSoc.send(json.dumps(send))
+                    webSoc:ServerConnection=admins[adminId][socId]
+                    await send_safe(webSoc, json.dumps(send))
 
 
     @staticmethod
@@ -86,9 +98,8 @@ class Pings:
 
                 for adminId in admins:
                     for socId in admins[adminId]:
-                        webSoc=admins[adminId][socId]
-                        if(not webSoc.closed):
-                            await webSoc.send(json.dumps(send))
+                        webSoc:ServerConnection=admins[adminId][socId]
+                        await send_safe(webSoc, json.dumps(send))
             
                 return
 
@@ -108,9 +119,8 @@ class Pings:
         # print(user_sockets[int(recieverId)])
         if(recieverId in user_sockets):
             for socId in user_sockets[recieverId]:
-                webSoc=user_sockets[recieverId][socId]
-                if(not webSoc.closed):
-                    await webSoc.send(json.dumps(send))
+                webSoc:ServerConnection=user_sockets[recieverId][socId]
+                await send_safe(webSoc, json.dumps(send))
 
         if(isAdmin):
             if(newAdmin):
@@ -136,9 +146,8 @@ class Pings:
 
             if(recipientId in user_sockets):
                 for socId in user_sockets[recipientId]:
-                    webSoc=user_sockets[recipientId][socId]
-                    if(not webSoc.closed):
-                        await webSoc.send(json.dumps(send))
+                    webSoc:ServerConnection=user_sockets[recipientId][socId]
+                    await send_safe(webSoc, json.dumps(send))
 
     @staticmethod
     async def msgsDelivered(chatId, msgIds_str,  idToRecieve, idIsAdmin, time_del):
@@ -159,9 +168,8 @@ class Pings:
         if(idToRecieve in user_sockets):
 
             for socId in user_sockets[idToRecieve]:
-                webSoc=user_sockets[idToRecieve][socId]
-                if(not webSoc.closed):
-                    await webSoc.send(json.dumps(send))
+                webSoc:ServerConnection=user_sockets[idToRecieve][socId]
+                await send_safe(webSoc, json.dumps(send))
     
     @staticmethod
     async def msgsSeen(chatId, msgIds_str,  idToRecieve, idIsAdmin, time_del):
@@ -182,9 +190,8 @@ class Pings:
         if(idToRecieve in user_sockets):
 
             for socId in user_sockets[idToRecieve]:
-                webSoc=user_sockets[idToRecieve][socId]
-                if(not webSoc.closed):
-                    await webSoc.send(json.dumps(send))
+                webSoc:ServerConnection=user_sockets[idToRecieve][socId]
+                await send_safe(webSoc, json.dumps(send))
     
 
 
@@ -393,11 +400,12 @@ async def processUserLeave(userid, isAdmin, sockeetId):
         await Pings.onlineStatus(resData["user_status"], userid, resData["list_to_notify"], isAdmin)
 
 
-async def handle_connection(websocket, path):
+async def handle_connection(websocket:ServerConnection):
     print("A client connected!")
 
+    path=websocket.request.path
+
     data=path.split("/")
-    print(data)
     userid=data[1]
     isAdmin=int(data[2])
     sockeetId=data[3]

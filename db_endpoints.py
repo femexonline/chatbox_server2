@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 if(os.getenv("LIVE")=="false"):
-    print("yes")
     load_dotenv(".env.dev", override=True)
 
 
