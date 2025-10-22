@@ -397,6 +397,7 @@ async def handle_connection(websocket, path):
     print("A client connected!")
 
     data=path.split("/")
+    print(data)
     userid=data[1]
     isAdmin=int(data[2])
     sockeetId=data[3]
