@@ -404,7 +404,6 @@ async def handle_connection(websocket:ServerConnection):
     print("A client connected!")
 
     path=websocket.request.path
-    print(path)
 
     data=path.split("/")
     userid=data[1]
