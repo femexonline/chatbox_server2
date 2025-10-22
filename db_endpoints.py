@@ -22,6 +22,8 @@ VerifySsl=True
 if(os.getenv("VERIFY_SSL")=="false"):
     VerifySsl=False
 
+    import urllib3
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class EndPoints:
