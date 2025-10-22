@@ -18,6 +18,11 @@ def getApiPath(name):
     return env("API_HOST")+env("API_HOME")+name
 
 
+VerifySsl=True
+if(os.getenv("VERIFY_SSL")=="false"):
+    VerifySsl=False
+
+
 
 class EndPoints:
 
@@ -33,7 +38,11 @@ class EndPoints:
 
 
         # send POST request
-        response = requests.post(getApiPath("send_msg_recv.php"), data=data)
+        response = requests.post(
+            getApiPath("send_msg_recv.php"), 
+            data=data,
+            verify=VerifySsl
+        )
 
 
         if response.ok:
@@ -55,7 +64,11 @@ class EndPoints:
         }
 
         # send POST request
-        response = requests.post(getApiPath("msgs_recv_sig.php"), data=data)
+        response = requests.post(
+            getApiPath("msgs_recv_sig.php"), 
+            data=data,
+            verify=VerifySsl
+        )
 
         if response.ok:
             # res = response.text
@@ -75,7 +88,11 @@ class EndPoints:
         }
 
         # send POST request
-        response = requests.post(getApiPath("msgs_seen_sig.php"), data=data)
+        response = requests.post(
+            getApiPath("msgs_seen_sig.php"), 
+            data=data,
+            verify=VerifySsl
+        )
 
         if response.ok:
             # res = response.text
@@ -92,7 +109,11 @@ class EndPoints:
         }
 
         # send POST request
-        response = requests.post(getApiPath("new_chat_start.php"), data=data)
+        response = requests.post(
+            getApiPath("new_chat_start.php"), 
+            data=data,
+            verify=VerifySsl
+        )
 
         if response.ok:
             # res = response.text
@@ -110,7 +131,11 @@ class EndPoints:
         }
 
         # send POST request
-        response = requests.post(getApiPath("set_user_online.php"), data=data)
+        response = requests.post(
+            getApiPath("set_user_online.php"), 
+            data=data,
+            verify=VerifySsl
+        )
 
         if response.ok:
             # res = response.text
@@ -129,7 +154,11 @@ class EndPoints:
         }
 
         # send POST request
-        response = requests.post(getApiPath("set_user_offline.php"), data=data)
+        response = requests.post(
+            getApiPath("set_user_offline.php"), 
+            data=data,
+            verify=VerifySsl
+        )
 
         if response.ok:
             # res = response.text
