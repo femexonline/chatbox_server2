@@ -441,7 +441,7 @@ def health_check(connection, request):
 
 
 async def main():
-    async with websockets.serve(handle_connection, env("HOST"), int(env("PORT")), process_request=health_check):
+    async with websockets.serve(handle_connection, "", int(env("PORT")), process_request=health_check):
         print("WebSocket server is running on ws://{}:{}".format(env("HOST"), env("PORT")))
         await asyncio.Future()  # Run forever
 
