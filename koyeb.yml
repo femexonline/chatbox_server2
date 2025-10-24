@@ -1,0 +1,7 @@
+name: chatbox-server
+services:
+  - name: websocket-server
+    ports:
+      - 8080
+    routes:
+      - path: /
