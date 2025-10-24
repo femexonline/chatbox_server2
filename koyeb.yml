@@ -7,11 +7,11 @@ services:
       - fra
     instance_type: free
     ports:
-      - port: 8080
+      - port: 8000
         protocol: http
     routes:
       - path: /
-        port: 8080
+        port: 8000
     build:
       git:
         branch: main
@@ -23,4 +23,4 @@ services:
       restart_limit: 3
       http:
         path: /healthz
-        port: 8080
+        port: 8000
