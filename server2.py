@@ -431,6 +431,7 @@ async def handle_connection(websocket:ServerConnection):
 
 
 def health_check(connection, request):
+    print(request.path)
     if request.path == "/healthz":
         return connection.respond(200, "OK\n")
     
